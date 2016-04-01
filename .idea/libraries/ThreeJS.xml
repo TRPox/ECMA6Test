@@ -1,0 +1,8 @@
+<component name="libraryTable">
+  <library name="ThreeJS" type="javaScript">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/JS/three.min.js" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>
