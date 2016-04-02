@@ -7,6 +7,10 @@ class ObjectBuilderFactory {
         switch (objectType) {
             case "Line":
                 return new LineBuilder();
+            case "Rectangle":
+                return new RectangleBuilder();
+            case "Spline":
+                return new SplineBuilder();
             case "Test":
                 return new TestBuilder();
             default:
@@ -23,14 +27,17 @@ class ObjectBuilder {
     }
 
     addPoint(point) {
-        if(!this._isObjectFinished) {
-            // console.log(this._geometry);
+        if(!this._isObjectFinished)
             this._geometry.vertices.push(point);
-        }
     }
 
     isObjectFinished() {
         return this._isObjectFinished;
+    }
+
+    finishObject() {
+        if(this._geometry.vertices.length >= 2)
+            this._isObjectFinished = true;
     }
 
     getMesh() {
@@ -45,7 +52,7 @@ class LineBuilder extends ObjectBuilder {
 
     addPoint(point) {
         super.addPoint(point);
-        if(this._geometry.vertices.length == 2) this._isObjectFinished = true;
+        this.finishObject();
     }
 
     getMesh() {
@@ -53,6 +60,53 @@ class LineBuilder extends ObjectBuilder {
         material = new THREE.LineBasicMaterial({color: 0x00ff00});
         line = new THREE.Line(this._geometry, material);
         return line;
+    }
+}
+
+class RectangleBuilder extends ObjectBuilder {
+    constructor() {
+        super();
+    }
+
+    addPoint(point) {
+        super.addPoint(point);
+        this.finishObject();
+    }
+
+    getMesh() {
+        var material, planeWidth, planeHeight, planeCenterX, planeCenterY, planeGeo, planeMesh;
+        var upperLeft, bottomRight;
+        upperLeft = this._geometry.vertices[0];
+        bottomRight = this._geometry.vertices[1];
+        planeCenterX = (upperLeft.x + bottomRight.x) / 2;
+        planeCenterY = (upperLeft.y + bottomRight.y) / 2;
+        planeHeight = Math.abs(upperLeft.y - bottomRight.y);
+        planeWidth = Math.abs(upperLeft.x - bottomRight.x);
+        material = new THREE.MeshBasicMaterial({color: 0x33ccff});
+        planeGeo = new THREE.PlaneGeometry(planeWidth, planeHeight);
+        planeMesh = new THREE.Mesh(planeGeo, material);
+        planeMesh.position.set(planeCenterX, planeCenterY, 0);
+        return planeMesh;
+    }
+}
+
+class SplineBuilder extends ObjectBuilder {
+    constructor() {
+        super();
+    }
+
+    addPoint(point) {
+        super.addPoint(point);
+    }
+
+    getMesh() {
+        var material, splineCurve, splinePath, splineGeo, spline;
+        material = new THREE.LineBasicMaterial({color: 0xfff000});
+        splineCurve = new THREE.SplineCurve(this._geometry.vertices);
+        splinePath = new THREE.Path(splineCurve.getPoints(50));
+        splineGeo = splinePath.createPointsGeometry(50);
+        spline = new THREE.Line(splineGeo, material);
+        return spline;
     }
 }
 

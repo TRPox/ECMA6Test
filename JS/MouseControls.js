@@ -28,12 +28,21 @@ class MouseControls extends Observer {
         return this._mouseStrategy;
     }
 
+    disableContextMenu() {
+        this._domElement.oncontextmenu = function() { return false; };
+    }
+
+    enableContextMenu() {
+        this._domElement.oncontextmenu = function() { return true; };
+    }
+
     onMouseDown(event) {
         event.preventDefault();
         var mousePosition = this.getMousePosition(event);
         this._mouse.set(mousePosition.x, mousePosition.y);
-        this._mouseStrategy.mouseDownAt(mousePosition);
-        if(this._mouseStrategy.isFinished()) this._mouseStrategy = new BaseMouseStrategy();
+        console.log(event.button);
+        this._mouseStrategy.mouseDownAt(mousePosition, event.button);
+        if (this._mouseStrategy.isFinished()) this._mouseStrategy = new BaseMouseStrategy();
     }
 
     getMousePosition(event) {
@@ -67,15 +76,17 @@ class MouseControls extends Observer {
 
     setUpDOMObserver() {
         if (!this._domElement.prototype) this._domElement.prototype = {};
-        this._domElement.prototype.observers = [];
+        if (!this._domElement.prototype.observers) this._domElement.prototype.observers = [];
         this._domElement.prototype.notify = function (event) {
             for (var i = 0; i < this.prototype.observers.length; i++) {
                 this.prototype.observers[i].update(event);
             }
         };
+
         this._domElement.prototype.addObserver = function (observer) {
             this.observers[this.observers.length] = observer;
         };
+
         this._domElement.prototype.removeObserver = function (observer) {
             var observers = this.observers;
             for (var i = 0; i < observers.length; i++) {
